@@ -6,3 +6,4 @@
 * http://tutorials.jenkov.com/java-concurrency/thread-safety.html
 * https://garygregory.wordpress.com/2011/09/09/multi-threaded-unit-testing/
 * http://winterbe.com/posts/2015/04/30/java8-concurrency-tutorial-synchronized-locks-examples/
+* http://blog.takipi.com/java-8-stampedlocks-vs-readwritelocks-and-synchronized/
