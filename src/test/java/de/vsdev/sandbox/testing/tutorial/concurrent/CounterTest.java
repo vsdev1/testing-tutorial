@@ -74,7 +74,7 @@ public class CounterTest {
 
         List<Future<Void>> futures = countInThreads(threadCount);
 
-        // read in threads in order to measure the performance impact of locking
+        // read concurrently in order to measure the performance impact of locking
         readCounterResultInThreads(THREAD_COUNT);
 
         collectCountingResults(futures);
