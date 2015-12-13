@@ -2,7 +2,7 @@
 
 ## Links:
 
-[tempus fugit lib](https://github.com/tobyweston/tempus-fugit/tree/jdk8)
+* [tempus fugit lib](https://github.com/tobyweston/tempus-fugit/tree/jdk8)
 
 * http://tutorials.jenkov.com/java-concurrency/thread-safety.html
 * https://garygregory.wordpress.com/2011/09/09/multi-threaded-unit-testing/
