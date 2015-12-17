@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
@@ -17,14 +18,16 @@ public class CounterTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CounterTest.class);
 
-    private static final int THREAD_COUNT = 50;
-    private static final long ITERATIONS_PER_THREAD = 1000000L;
+    private static final int WRITER_THREAD_COUNT = 2;
+    private static final int READER_THREAD_COUNT = 1;
+    private static final long ITERATIONS_PER_THREAD = 100000000L;
 
     private Counter counter;
 
     @BeforeClass
     public static void setUp() {
-        LOGGER.info("thread count: {}", THREAD_COUNT);
+        LOGGER.info("writer thread count: {}", WRITER_THREAD_COUNT);
+        LOGGER.info("reader thread count: {}", READER_THREAD_COUNT);
         LOGGER.info("iterations per thread: {}", ITERATIONS_PER_THREAD);
     }
 
@@ -54,6 +57,11 @@ public class CounterTest {
     }
 
     @Test
+    public void optimisticStampedLockCounterWorks() throws Exception {
+        verifyCounting(new OptimisticStampedLockCounter());
+    }
+
+    @Test
     public void atomicLongCounterWorks() throws Exception {
         verifyCounting(new AtomicLongCounter());
     }
@@ -66,7 +74,7 @@ public class CounterTest {
     private void verifyCounting(final Counter counterToTest) throws Exception {
         counter = counterToTest;
         LOGGER.info("Tested counter is: {}", counter.getClass().getSimpleName());
-        verifyCounting(THREAD_COUNT, ITERATIONS_PER_THREAD);
+        verifyCounting(WRITER_THREAD_COUNT, ITERATIONS_PER_THREAD);
     }
 
     private void verifyCounting(final int threadCount, final long iterationsPerThread) throws Exception {
@@ -75,10 +83,12 @@ public class CounterTest {
         List<Future<Void>> futures = countInThreads(threadCount);
 
         // read concurrently in order to measure the performance impact of locking
-        readCounterResultInThreads(THREAD_COUNT);
+        final List<Future<Void>> readingFutures = readCounterResultInThreads(READER_THREAD_COUNT);
 
         collectCountingResults(futures);
         assertThat(futures.size(), is(equalTo(threadCount)));
+
+        readingFutures.parallelStream().forEach(readingFuture -> readingFuture.cancel(true));
 
         long endTime = System.currentTimeMillis();
         LOGGER.info("Elapsed time in millis: {}", (endTime - startTime));
@@ -96,14 +106,19 @@ public class CounterTest {
         List<Callable<Void>> tasks = Collections.nCopies(threadCount, createCountWriterTask());
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
 
-        return executorService.invokeAll(tasks);
+        return  executorService.invokeAll(tasks);
     }
 
     private List<Future<Void>> readCounterResultInThreads(int threadCount) throws InterruptedException {
         List<Callable<Void>> tasks = Collections.nCopies(threadCount, createResultReaderTask());
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
 
-        return executorService.invokeAll(tasks);
+        final List<Future<Void>> futures = new ArrayList<>(tasks.size());
+        for (Callable<Void> task : tasks) {
+            futures.add(executorService.submit(task));
+        }
+
+        return futures;
     }
 
     private Callable<Void> createCountWriterTask() {
@@ -118,11 +133,9 @@ public class CounterTest {
 
     private Callable<Void> createResultReaderTask() {
         return () -> {
-            for (int i = 0; i < ITERATIONS_PER_THREAD; i++) {
+            while (true) {
                 counter.getResult();
             }
-
-            return null;
         };
     }
 }
