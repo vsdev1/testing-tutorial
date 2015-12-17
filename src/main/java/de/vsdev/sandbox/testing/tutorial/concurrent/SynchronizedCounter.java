@@ -12,13 +12,10 @@ public class SynchronizedCounter implements Counter {
     @Override
     public synchronized void increment() {
         counter++;
-//        LOGGER.info("incremented to: " + counter);
-//        System.out.println("incremented to: " + counter);
     }
 
     @Override
     public synchronized long getResult() {
-//        System.out.println("result is: " + counter);
         return counter;
     }
 }

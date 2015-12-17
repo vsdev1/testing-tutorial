@@ -9,18 +9,19 @@ public class OptimisticStampedLockCounter implements Counter {
 
     @Override
     public void increment() {
-        long stamp = stampedLock.writeLock();
+        long stamp = stampedLock.writeLock(); // blocking lock, returns a stamp
         try {
             counter++;
         } finally {
-            stampedLock.unlockWrite(stamp);
+            stampedLock.unlockWrite(stamp); // release the lock in the same block
         }
     }
 
     @Override
     public long getResult() {
-        long stamp = stampedLock.tryOptimisticRead();
+        long stamp = stampedLock.tryOptimisticRead(); // non blocking
         if (!stampedLock.validate(stamp)) {
+            // if a write occurred, try again with a read lock
             stamp = stampedLock.readLock();
             try {
                 return counter;
