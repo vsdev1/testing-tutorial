@@ -1,18 +1,22 @@
 package de.vsdev.sandbox.testing.tutorial.concurrent;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CounterTest {
 
@@ -38,37 +42,30 @@ public class CounterTest {
 
     @Test
     public void volatileCounterIsBroken() throws Exception {
-        verifyCounting(new VolatileCounter());
     }
 
     @Test
     public void synchronizedCounterWorks() throws Exception {
-        verifyCounting(new SynchronizedCounter());
     }
 
     @Test
     public void readWriteLockCounterWorks() throws Exception {
-        verifyCounting(new ReadWriteLockCounter());
     }
 
     @Test
     public void stampedLockCounterWorks() throws Exception {
-        verifyCounting(new StampedLockCounter());
     }
 
     @Test
     public void optimisticStampedLockCounterWorks() throws Exception {
-        verifyCounting(new OptimisticStampedLockCounter());
     }
 
     @Test
     public void atomicLongCounterWorks() throws Exception {
-        verifyCounting(new AtomicLongCounter());
     }
 
     @Test
     public void longAdderCounterWorks() throws Exception {
-        verifyCounting(new LongAdderCounter());
     }
 
     private void verifyCounting(final Counter counterToTest) throws Exception {
