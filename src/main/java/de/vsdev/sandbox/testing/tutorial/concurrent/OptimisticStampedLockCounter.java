@@ -20,6 +20,7 @@ public class OptimisticStampedLockCounter implements Counter {
     @Override
     public long getResult() {
         long stamp = stampedLock.tryOptimisticRead(); // non blocking
+        long result = counter;
         if (!stampedLock.validate(stamp)) {
             // if a write occurred, try again with a read lock
             stamp = stampedLock.readLock();
@@ -29,6 +30,6 @@ public class OptimisticStampedLockCounter implements Counter {
                 stampedLock.unlockRead(stamp);
             }
         }
-        return counter;
+        return result;
     }
 }
